@@ -1,3 +1,5 @@
+import hero from '../assets/hero.png';
+//
 const Home = () => {
   return (
     <div className="w-full bg-white ">
@@ -5,7 +7,7 @@ const Home = () => {
         {/* Hero section with overlay text */}
         <div className="w-screen   relative left-1/2 right-1/2 -mx-[50vw] mb-8 sm:mb-12">
           <img
-            src="../public/images/hero.png"
+            src={hero}
             className="w-full h-full object-cover"
           ></img>
         </div>
@@ -26,7 +28,7 @@ const Home = () => {
             <br></br>
             <div className="inline-block bg-[#1d689d] p-2 font-bebas">
               <p className="text-white text-2xl">
-                CREATED BY ONICHAD Youtube Email
+                CREATED BY NIMC
               </p>
             </div>
           </main>

@@ -1,5 +1,7 @@
 // Example usage in any component
 import Accordion from "../components/Accordion";
+import hero from '../assets/hero.png';
+
 const About = () => {
   const faqItems = [
     {
@@ -80,7 +82,7 @@ const About = () => {
         {/* Hero section with overlay text */}
         <div className="w-screen relative left-1/2 right-1/2 -mx-[50vw] mb-8 sm:mb-12">
           <img
-            src="../public/images/hero.png"
+            src={hero}
             className="w-full h-full object-cover"
           />
         </div>

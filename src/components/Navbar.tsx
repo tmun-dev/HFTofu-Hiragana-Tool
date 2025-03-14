@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { BookMarked, House, Info } from "lucide-react";
+import logo from '../assets/logo.png';
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -14,7 +15,7 @@ const Navbar = () => {
         <div className="flex justify-between items-center h-20">
           <div className="flex-shrink-0">
             <img
-              src="../public/images/logo.png"
+              src={logo}
               alt="HandsFreeTOFU Logo"
               className="h-14 w-auto"
             />
