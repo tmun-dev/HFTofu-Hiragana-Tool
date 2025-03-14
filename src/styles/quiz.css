@@ -1,0 +1,33 @@
+.quiz-panel.panel-correct {
+  animation: glow 1s ease-in-out;
+  background-color: #2fca2f !important;
+}
+
+.quiz-panel.panel-incorrect {
+  animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both;
+  background-color: #e64141 !important;
+}
+
+@keyframes glow {
+  0% {
+    box-shadow: 0 0 5px #2fca2f,
+               0 0 10px #2fca2f,
+               0 0 15px #2fca2f;
+  }
+  50% {
+    box-shadow: 0 0 20px #2fca2f,
+               0 0 35px #2fca2f,
+               0 0 50px #2fca2f;
+  }
+  100% {
+    box-shadow: 0 0 5px #2fca2f,
+               0 0 10px #2fca2f,
+               0 0 15px #2fca2f;
+  }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+} 
