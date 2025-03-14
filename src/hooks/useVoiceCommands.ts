@@ -1,3 +1,25 @@
+// Add type definitions for Web Speech API
+interface SpeechRecognitionErrorEvent extends Event {
+  error: 'network' | 'not-allowed' | 'permission-denied' | 'no-speech' | 'audio-capture' | 'aborted' | string;
+  message?: string;
+}
+
+interface SpeechRecognition extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  start: () => void;
+  stop: () => void;
+  onstart: (event: Event) => void;
+  onend: (event: Event) => void;
+  onerror: (event: SpeechRecognitionErrorEvent) => void;
+  onresult: (event: SpeechRecognitionEvent) => void;
+}
+
+interface SpeechRecognitionConstructor {
+  new (): SpeechRecognition;
+}
+
 import { useState, useEffect, useCallback, useRef } from "react";
 
 interface VoiceCommandsConfig {
@@ -16,17 +38,22 @@ export const useVoiceCommands = ({
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
   const shouldRestartRef = useRef(false);
   const retryCountRef = useRef(0);
   const MAX_RETRIES = 3;
 
   const initializeRecognition = useCallback(() => {
     // Try to use the standard SpeechRecognition interface first
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    
+    const SpeechRecognition = (
+      window.SpeechRecognition ||
+      window.webkitSpeechRecognition
+    ) as SpeechRecognitionConstructor | undefined;
+
     if (!SpeechRecognition) {
-      setError("Speech recognition not supported in this browser. Please use Chrome or Edge.");
+      setError(
+        "Speech recognition not supported in this browser. Please use Chrome or Edge."
+      );
       console.error("Speech recognition not supported");
       return null;
     }
@@ -66,19 +93,25 @@ export const useVoiceCommands = ({
                 // Set a timeout to detect if recognition fails to start
                 startTimeout = setTimeout(() => {
                   if (!isListening) {
-                    console.error('Recognition failed to start');
-                    setError("Failed to start voice recognition. Please check your internet connection and try again.");
+                    console.error("Recognition failed to start");
+                    setError(
+                      "Failed to start voice recognition. Please check your internet connection and try again."
+                    );
                     shouldRestartRef.current = false;
                   }
                 }, 3000);
                 retryCountRef.current++;
               } catch (e) {
-                console.error('Error restarting recognition:', e);
-                setError("Failed to restart voice recognition. Please try again.");
+                console.error("Error restarting recognition:", e);
+                setError(
+                  "Failed to restart voice recognition. Please try again."
+                );
                 shouldRestartRef.current = false;
               }
             } else {
-              setError("Maximum retry attempts reached. Please check your internet connection and try again.");
+              setError(
+                "Maximum retry attempts reached. Please check your internet connection and try again."
+              );
               shouldRestartRef.current = false;
             }
           }, delay);
@@ -90,18 +123,23 @@ export const useVoiceCommands = ({
           const current = event.resultIndex;
           const transcript = event.results[current][0].transcript;
           const isFinal = event.results[current].isFinal;
-          
-          console.log(`Transcript (${isFinal ? 'final' : 'interim'}):`, transcript);
-          
+
+          console.log(
+            `Transcript (${isFinal ? "final" : "interim"}):`,
+            transcript
+          );
+
           if (isFinal) {
             setTranscript(transcript);
             const lowerTranscript = transcript.toLowerCase().trim();
-            console.log('Processing command from transcript:', lowerTranscript);
-            
+            console.log("Processing command from transcript:", lowerTranscript);
+
             Object.entries(commands).forEach(([command, action]) => {
               const normalizedCommand = command.toLowerCase().trim();
               if (lowerTranscript.includes(normalizedCommand)) {
-                console.log(`Command match found: "${normalizedCommand}" in "${lowerTranscript}"`);
+                console.log(
+                  `Command match found: "${normalizedCommand}" in "${lowerTranscript}"`
+                );
                 try {
                   action();
                 } catch (e) {
@@ -111,56 +149,71 @@ export const useVoiceCommands = ({
             });
           }
         } catch (e) {
-          console.error('Error processing speech result:', e);
+          console.error("Error processing speech result:", e);
         }
       };
 
-      recognition.onerror = (event: any) => {
-        console.error('Voice recognition error:', event.error, event);
-        
+      recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+        console.error("Voice recognition error:", event.error, event);
+
         switch (event.error) {
-          case 'network':
-            setError("Network error. Please check your internet connection and firewall settings.");
+          case "network":
+            setError(
+              "Network error. Please check your internet connection and firewall settings."
+            );
             // For network errors, we'll try to restart with exponential backoff
             if (retryCountRef.current < MAX_RETRIES) {
-              const delay = Math.min(1000 * Math.pow(2, retryCountRef.current), 5000);
+              const delay = Math.min(
+                1000 * Math.pow(2, retryCountRef.current),
+                5000
+              );
               setTimeout(() => {
                 if (shouldRestartRef.current) {
                   try {
                     recognition.start();
                     startTimeout = setTimeout(() => {
                       if (!isListening) {
-                        console.error('Recognition failed to start after network error');
-                        setError("Failed to reconnect. Please check your internet connection and try again.");
+                        console.error(
+                          "Recognition failed to start after network error"
+                        );
+                        setError(
+                          "Failed to reconnect. Please check your internet connection and try again."
+                        );
                         shouldRestartRef.current = false;
                       }
                     }, 3000);
                     retryCountRef.current++;
                   } catch (e) {
-                    console.error('Error restarting after network error:', e);
+                    console.error("Error restarting after network error:", e);
                     shouldRestartRef.current = false;
                   }
                 }
               }, delay);
             } else {
-              setError("Network issues persist. Please check that:\n1. You have a stable internet connection\n2. Your firewall isn't blocking access\n3. You're using Chrome or Edge browser");
+              setError(
+                "Network issues persist. Please check that:\n1. You have a stable internet connection\n2. Your firewall isn't blocking access\n3. You're using Chrome or Edge browser"
+              );
               shouldRestartRef.current = false;
             }
             break;
-          case 'not-allowed':
-          case 'permission-denied':
-            setError("Microphone access denied. Please allow microphone access and try again.");
+          case "not-allowed":
+          case "permission-denied":
+            setError(
+              "Microphone access denied. Please allow microphone access and try again."
+            );
             shouldRestartRef.current = false;
             break;
-          case 'no-speech':
+          case "no-speech":
             console.log("No speech detected, continuing to listen...");
             shouldRestartRef.current = continuous;
             break;
-          case 'audio-capture':
-            setError("No microphone detected. Please connect a microphone and try again.");
+          case "audio-capture":
+            setError(
+              "No microphone detected. Please connect a microphone and try again."
+            );
             shouldRestartRef.current = false;
             break;
-          case 'aborted':
+          case "aborted":
             // Don't show error for user-initiated stops
             shouldRestartRef.current = false;
             break;
@@ -172,8 +225,10 @@ export const useVoiceCommands = ({
 
       return recognition;
     } catch (e) {
-      console.error('Error initializing speech recognition:', e);
-      setError("Failed to initialize speech recognition. Please try reloading the page.");
+      console.error("Error initializing speech recognition:", e);
+      setError(
+        "Failed to initialize speech recognition. Please try reloading the page."
+      );
       return null;
     }
   }, [commands, continuous]);
@@ -202,7 +257,7 @@ export const useVoiceCommands = ({
       try {
         recognitionRef.current.start();
       } catch (e) {
-        console.error('Error starting recognition:', e);
+        console.error("Error starting recognition:", e);
         setError("Failed to start voice recognition. Please try again.");
       }
     }
@@ -215,7 +270,7 @@ export const useVoiceCommands = ({
       try {
         recognitionRef.current.stop();
       } catch (e) {
-        console.error('Error stopping recognition:', e);
+        console.error("Error stopping recognition:", e);
       }
       retryCountRef.current = 0;
     }
@@ -231,5 +286,12 @@ export const useVoiceCommands = ({
     }
   }, [isListening, startListening, stopListening]);
 
-  return { isListening, transcript, error, startListening, stopListening, toggleListening };
+  return {
+    isListening,
+    transcript,
+    error,
+    startListening,
+    stopListening,
+    toggleListening,
+  };
 };
