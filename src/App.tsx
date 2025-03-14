@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import Learn from "./components/Learn";
@@ -6,7 +6,7 @@ import About from "./pages/About";
 
 function App() {
   return (
-    <Router>
+    <BrowserRouter>
       <div className="min-h-screen w-full flex flex-col">
         <Navbar />
         <main className="flex-grow w-full">
@@ -17,7 +17,7 @@ function App() {
           </Routes>
         </main>
       </div>
-    </Router>
+    </BrowserRouter>
   );
 }
 

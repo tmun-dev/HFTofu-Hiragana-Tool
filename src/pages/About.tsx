@@ -24,6 +24,23 @@ const About = () => {
       ),
     },
     {
+      title: "Voice Controls not working?",
+      content: (
+        <div>
+          <p className="mb-2">If voice controls are not working, please try the following:</p>
+          <ul className="list-disc pl-5 space-y-2">
+            <li>Check your browser and microphone permissions</li>
+            <li>Try a different browser</li>
+            <li>Ensure your microphone is working and properly configured</li>
+            <li>Check your internet connection</li>
+            <li>Restart your browser</li>
+            <li>Check your device's microphone settings</li>
+          </ul>
+
+        </div>
+      ),
+    },
+    {
       title: "Why is this application free?",
       content: (
         <div>
