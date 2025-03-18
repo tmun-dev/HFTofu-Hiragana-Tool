@@ -1,6 +1,13 @@
 // Add type definitions for Web Speech API
 interface SpeechRecognitionErrorEvent extends Event {
-  error: 'network' | 'not-allowed' | 'permission-denied' | 'no-speech' | 'audio-capture' | 'aborted' | string;
+  error:
+    | "network"
+    | "not-allowed"
+    | "permission-denied"
+    | "no-speech"
+    | "audio-capture"
+    | "aborted"
+    | string;
   message?: string;
 }
 
@@ -14,6 +21,7 @@ interface SpeechRecognition extends EventTarget {
   onend: (event: Event) => void;
   onerror: (event: SpeechRecognitionErrorEvent) => void;
   onresult: (event: SpeechRecognitionEvent) => void;
+  onspeechend: (event: Event) => void;
 }
 
 interface SpeechRecognitionConstructor {
@@ -42,13 +50,18 @@ export const useVoiceCommands = ({
   const shouldRestartRef = useRef(false);
   const retryCountRef = useRef(0);
   const MAX_RETRIES = 3;
+  const isMobile = useRef(
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent
+    )
+  );
 
   const initializeRecognition = useCallback(() => {
     // Try to use the standard SpeechRecognition interface first
-    const SpeechRecognition = (
-      window.SpeechRecognition ||
-      window.webkitSpeechRecognition
-    ) as SpeechRecognitionConstructor | undefined;
+    const SpeechRecognition = (window.SpeechRecognition ||
+      window.webkitSpeechRecognition) as unknown as
+      | SpeechRecognitionConstructor
+      | undefined;
 
     if (!SpeechRecognition) {
       setError(
@@ -223,6 +236,18 @@ export const useVoiceCommands = ({
         }
       };
 
+      recognition.onspeechend = () => {
+        setTimeout(() => {
+          if (isListening && recognitionRef.current) {
+            try {
+              recognitionRef.current.start();
+            } catch (e) {
+              console.error("Error restarting:", e);
+            }
+          }
+        }, 300);
+      };
+
       return recognition;
     } catch (e) {
       console.error("Error initializing speech recognition:", e);
@@ -231,7 +256,7 @@ export const useVoiceCommands = ({
       );
       return null;
     }
-  }, [commands, continuous]);
+  }, [commands, continuous, isListening]);
 
   useEffect(() => {
     recognitionRef.current = initializeRecognition();
@@ -247,6 +272,26 @@ export const useVoiceCommands = ({
       }
     };
   }, [initializeRecognition, autoStart]);
+
+  useEffect(() => {
+    if (isListening && isMobile.current) {
+      // Try to restart the microphone every 5 seconds on mobile
+      const interval = setInterval(() => {
+        try {
+          if (recognitionRef.current) {
+            recognitionRef.current.stop();
+            setTimeout(() => {
+              recognitionRef.current?.start();
+            }, 300);
+          }
+        } catch (e) {
+          console.error("Error restarting microphone:", e);
+        }
+      }, 5000);
+
+      return () => clearInterval(interval);
+    }
+  }, [isListening]);
 
   const startListening = useCallback(() => {
     if (recognitionRef.current && !isListening) {
