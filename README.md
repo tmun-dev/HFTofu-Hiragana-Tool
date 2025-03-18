@@ -5,5 +5,5 @@ The goal is to make the quiz section voice controlled, so you can use "TOFUGU" H
 This application was made for myself but I wish to share the code and the website with everyone when I can soon!
 **This is a work in progress**
 
-
+Demo site: https://521f75bd.hftofu.pages.dev/
 (Works best on native chrome browser, brave my pose issues due to enhanced blocking features)
